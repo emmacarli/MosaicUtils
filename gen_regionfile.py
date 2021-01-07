@@ -1,49 +1,80 @@
-# here RAs are h:m:s.ss but can be degrees
-# (this assume fk5, if you want to use
-# galactic coords we have to change some
-# things)
-ras = ['3:43:27.94', '3:43:33.44','3:43:22.44','3:43:29.04','3:43:23.54',
-	'3:42:58.24','3:44:35.04','3:43:32.34','3:43:26.84',
-	'3:44:26.20','3:42:20.77','3:42:24.13','3:44:31.83']
-# here DECs are d:m:s.ss but can be degrees
-# (this assume fk5, if you want to use
-# galactic coords we have to change some
-# things)
+#%% Import packages
+import os, subprocess
+import numpy as np
+import re
 
-decs = ['-30:00:27.5', '-30:00:57.1','-29:59:57.9','-30:01:34.0','-30:01:04.4',
-	'-29:55:46.1','-29:57:22.3','-29:59:50.6','-29:59:21.0','-29:53:33.4',
-	'-30:03:30.6','-29:56:44.2','-30:04:08.9']
+regexp_numeric_pattern = r'[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?'
+# This expression needs compiled by regexp
+any_number = re.compile(regexp_numeric_pattern, re.VERBOSE)
 
-# Widths of your ellipses in arcsec
-widths = [29.86069718374397297, 29.86069718374397297,29.86069718374397297,29.86069718374397297,29.86069718374397297,
-29.86069718374397297,29.86069718374397297,29.86069718374397297,29.86069718374397297,29.86069718374397297,
-29.86069718374397297,29.86069718374397297,29.86069718374397297]
+#%% TO RUN THIS ON DOKIMI
+#conda activate py27 #to run tilesim in anaconda installation of mosaic which is written in python 2
+#python3 gen_regionfile.py # to run this script in python 3
 
-# Heights of your ellipses in arcsec
-heights = [41.0172274967990944,41.0172274967990944,41.0172274967990944,41.0172274967990944,41.0172274967990944,41.0172274967990944,41.0172274967990944,41.0172274967990944,41.0172274967990944,41.0172274967990944,41.0172274967990944,41.0172274967990944,41.0172274967990944]
+#%% Set observation variables
+workdir = '/raid/ecarli/SMC/mosaic_SMC_beamforming/1st_Pointing_0049-7312/'
+ds9_dir = '/raid/ecarli/SMC/ds9_SMC_targets/Regions/First_Pointing_0049-7312/Tilings/'
+observation_date = '2020.01.12' #YYYY.MM.DD
+middle_of_obs_time = '09:30:00.00' #UTC
+beam_total = 480
+dishes = '000,001,002,003,004,006,007,008,009,011,012,013,014,015,016,017,018,019,020,021,022,023,024,026,027,029,030,031,032,033,034,035,036,037,038,039,040,041,042,043,044,045,046,047'
 
-# Position angle of your ellipses in degrees
-pas = [68.2081243317, 68.2081243317,68.2081243317,68.2081243317,68.2081243317,68.2081243317,68.2081243317,68.2081243317,68.2081243317,68.2081243317,68.2081243317,68.2081243317,68.2081243317]
+#%% Set sources
 
-# Header for the reg file
-header = ['# Region file format: DS9 version 4.1',
-          ('global color=blue dashlist=8 3 '
-           'width=2 font="helvetica 10 '
-           'normal roman" select=1 highlite=1 '
-           'dash=0 fixed=0 edit=1 move=1 '
-           'delete=1 include=1 source=1'),
-          'fk5']
+tiling_centres = ['00:47:07 -73:08:36','00:48:19.6 -73:19:40', '00:49:07.7 -73:14:45','00:51:06.7 -73:21:26']
+source_names = ['TripleSNR','SNR0048-7319','SNR0049-7314', 'SNR0051-7321']
+numbers_of_beams = [100,30,40,35]
 
-# Make your ellipses
-for r, ra in enumerate(ras):
-    line = ('ellipse({0},{1},{2}",{3}",{4})').format(ra,
-                                                     decs[r],
-                                                     widths[r],
-                                                     heights[r],
-                                                     pas[r])
-    header.append(line)
 
-# Write everything into a file
-with open(('regionfile.reg'), 'w') as filehandle:
-    for listitem in header:
-        filehandle.write('{}\n'.format(listitem))
+print('There are '+str(beam_total-sum(numbers_of_beams))+' beams left to tile at boresight.')
+
+
+for tiling_centre, source_name, number_of_beams in zip(tiling_centres, source_names, numbers_of_beams):
+#%% Build TileSim command
+
+    tilesim_command = 'python ~/PULSAR_SOFTWARE/mosaic/mosaic/tilesim.py --ants antenna.csv --freq 1.284e9 --source '+tiling_centre+'  --datetime '+observation_date+' '+middle_of_obs_time+' --beamnum '+str(number_of_beams)+'  --verbose --overlap 0.75 --resolution 1 --size 1000 --subarray '+dishes
+    
+
+#%% Run TileSim
+
+    os.system('cd '+workdir)
+    tilesim_run = subprocess.run(tilesim_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    
+    tilesim_stdout_handle =  open(workdir+'Outputs/output_tiling_'+source_name, 'w')
+    tilesim_stdout_handle.write(tilesim_run.stdout.decode('utf-8')+'\n')
+    tilesim_stdout_handle.close()
+    
+    tilesim_stdout_handle =  open(workdir+'Outputs/output_tiling_'+source_name, 'r')
+    for line in tilesim_stdout_handle:
+        result_width1 = re.search('tiling: width1: ([-+]?\d*\.\d+|\d+)', line)
+        if result_width1:
+            width1 = result_width1.groups()[0]
+            width1 = str(width1)
+        result_position_angle = re.search('angle: ([-+]?\d*\.\d+|\d+)', line)
+        if result_position_angle:
+            position_angle = result_position_angle.groups()[0]
+            position_angle = str(-float(position_angle))
+        result_width2 = re.search('width2: ([-+]?\d*\.\d+|\d+) arcsec in equatorial plane', line)
+        if result_width2:
+            width2 = result_width2.groups()[0]
+            width2 = str(width2)
+#%% Convert TileSim output to ds9
+
+    beam_positions = np.genfromtxt(workdir+'tilingCoord')
+    region_file_handle = open((ds9_dir+'tiling_'+source_name+'.reg'),'w')
+    region_file_handle.write('global color=black rotate=0 move=0 edit=0 width=2\n')
+    region_file_handle.write('j2000\n')
+    
+        
+    
+    for beam in range(len(beam_positions[:,0])):
+        region_file_handle.write('ellipse '+str(beam_positions[beam,0])+'d '+str(beam_positions[beam,1])+'d '+width1+'" '+width2+'" '+position_angle+'d \n')
+    
+    region_file_handle.close()
+    os.remove(workdir+'tilingCoord')
+    os.remove(workdir+'tiling.svg')
+    os.remove(workdir+'tilingCoord_pixel')
+    os.remove(workdir+'beamWithFit.png')
+
+
+
