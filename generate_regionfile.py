@@ -3,6 +3,9 @@ import os, subprocess
 import numpy as np
 import re
 
+regexp_numeric_pattern = r'[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?'
+# This expression needs compiled by regexp
+any_number = re.compile(regexp_numeric_pattern, re.VERBOSE)
 
 #%% TO RUN THIS ON DOKIMI
 #conda activate py27 #to run tilesim in anaconda installation of mosaic which is written in python 2
@@ -10,7 +13,7 @@ import re
 
 #%% Set observation variables
 workdir = '/raid/ecarli/SMC/mosaic_SMC_beamforming/1st_Pointing_0049-7312/'
-ds9_dir = '/raid/ecarli/SMC/ds9_SMC_targets/Regions/First_Pointing_0049-7312/Tilings/'
+ds9_dir = '/raid/ecarli/SMC/ds9_SMC_targets/Regions/1st_Pointing_0049-7312/Tilings/'
 observation_date = '2020.01.12' #YYYY.MM.DD
 middle_of_obs_time = '09:30:00.00' #UTC
 beam_total = 480
@@ -18,12 +21,12 @@ dishes = '000,001,002,003,004,006,007,008,009,011,012,013,014,015,016,017,018,01
 
 #%% Set sources
 
-tiling_centres = ['00:47:07 -73:08:36','00:48:19.6 -73:19:40', '00:49:07.7 -73:14:45','00:51:06.7 -73:21:26']
-source_names = ['TripleSNR','SNR0048-7319','SNR0049-7314', 'SNR0051-7321']
-numbers_of_beams = [100,30,40,35]
+tiling_centres = ['00:47:07 -73:08:36','00:48:19.6 -73:19:40', '00:49:07.7 -73:14:45','00:51:06.7 -73:21:26','0:49:08.0052 -73:12:53.599']
+source_names = ['TripleSNR','SNR0048-7319','SNR0049-7314', 'SNR0051-7321','boresight']
+numbers_of_beams = [100,30,40,35,275]
 
 
-print('There are '+str(beam_total-sum(numbers_of_beams))+' beams left to tile at boresight.')
+print('There are '+str(beam_total-sum(numbers_of_beams))+' beams left.')
 
 
 for tiling_centre, source_name, number_of_beams in zip(tiling_centres, source_names, numbers_of_beams):
