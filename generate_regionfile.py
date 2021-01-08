@@ -3,8 +3,6 @@ import os, subprocess
 import numpy as np
 import re
 
-regexp_numeric_pattern = r'[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?'
-# This expression needs compiled by regexp
 
 #%% TO RUN THIS ON DOKIMI
 #conda activate py27 #to run tilesim in anaconda installation of mosaic which is written in python 2
