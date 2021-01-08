@@ -2,7 +2,7 @@
 
 
 ---
-gen_regionfile.py
+generate_regionfile.py
 
 
 Creates a DS9 region file using TileSim.
