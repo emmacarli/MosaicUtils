@@ -14,7 +14,11 @@ ds9_dir = '/raid/ecarli/SMC/ds9_SMC_targets/Regions/2nd_Pointing_0055-7226/Tilin
 observation_date = '2020.01.12' #YYYY.MM.DD
 middle_of_obs_time = '11:30:00.00' #UTC
 beam_total = 480
-dishes = '000,001,002,003,004,006,007,008,009,011,012,013,014,015,016,017,018,019,020,021,022,023,024,026,027,029,030,031,032,033,034,035,036,037,038,039,040,041,042,043,044,045,046,047'
+
+maximum_dishes_number = 47
+formatter = '{:03d}'.format #mosaic needs leading zeros so that each dish number has 3 digits
+dishes_list = list(map(formatter,list(range(0,maximum_dishes_number+1))))
+dishes = ','.join(map(str,dishes_list))
 
 #%% Set sources
 
@@ -37,7 +41,11 @@ for tiling_centre, source_name, number_of_beams in zip(tiling_centres, source_na
     os.system('cd '+workdir)
     tilesim_run = subprocess.run(tilesim_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     
-    tilesim_stdout_handle =  open(workdir+'Outputs/output_tiling_'+source_name, 'w')
+    if number_of_beams != 1:
+        tilesim_stdout_handle =  open(workdir+'Outputs/output_tiling_'+source_name, 'w')
+    else:
+        tilesim_stdout_handle =  open(workdir+'Outputs/output_beam_'+source_name, 'w')    
+    
     tilesim_stdout_handle.write(tilesim_run.stdout.decode('utf-8')+'\n')
     tilesim_stdout_handle.close()
     
@@ -58,7 +66,10 @@ for tiling_centre, source_name, number_of_beams in zip(tiling_centres, source_na
 #%% Convert TileSim output to ds9
 
     beam_positions = np.genfromtxt(workdir+'tilingCoord')
-    region_file_handle = open((ds9_dir+'tiling_'+source_name+'.reg'),'w')
+    if number_of_beams != 1:
+        region_file_handle = open((ds9_dir+'tiling_'+source_name+'.reg'),'w')
+    else:
+        region_file_handle = open((ds9_dir+'beam_'+source_name+'.reg'),'w')
     region_file_handle.write('global color=black rotate=0 move=0 edit=0 width=2\n')
     region_file_handle.write('j2000\n')
     
