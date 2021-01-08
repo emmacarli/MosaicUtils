@@ -3,27 +3,24 @@ import os, subprocess
 import numpy as np
 import re
 
-regexp_numeric_pattern = r'[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?'
-# This expression needs compiled by regexp
-any_number = re.compile(regexp_numeric_pattern, re.VERBOSE)
 
 #%% TO RUN THIS ON DOKIMI
 #conda activate py27 #to run tilesim in anaconda installation of mosaic which is written in python 2
 #python3 gen_regionfile.py # to run this script in python 3
 
 #%% Set observation variables
-workdir = '/raid/ecarli/SMC/mosaic_SMC_beamforming/1st_Pointing_0049-7312/'
-ds9_dir = '/raid/ecarli/SMC/ds9_SMC_targets/Regions/1st_Pointing_0049-7312/Tilings/'
+workdir = '/raid/ecarli/SMC/mosaic_SMC_beamforming/2nd_Pointing_0055-7226/'
+ds9_dir = '/raid/ecarli/SMC/ds9_SMC_targets/Regions/2nd_Pointing_0055-7226/Tilings/'
 observation_date = '2020.01.12' #YYYY.MM.DD
-middle_of_obs_time = '09:30:00.00' #UTC
+middle_of_obs_time = '11:30:00.00' #UTC
 beam_total = 480
 dishes = '000,001,002,003,004,006,007,008,009,011,012,013,014,015,016,017,018,019,020,021,022,023,024,026,027,029,030,031,032,033,034,035,036,037,038,039,040,041,042,043,044,045,046,047'
 
 #%% Set sources
 
-tiling_centres = ['00:47:07 -73:08:36','00:48:19.6 -73:19:40', '00:49:07.7 -73:14:45','00:51:06.7 -73:21:26','0:49:08.0052 -73:12:53.599']
-source_names = ['TripleSNR','SNR0048-7319','SNR0049-7314', 'SNR0051-7321','boresight']
-numbers_of_beams = [100,30,40,35,275]
+tiling_centres = ['0:59:27.70 -72:10:10.0','0:52:59.90 -72:36:47.0', '0:56:28.10 -72:09:42.2','0:57:49.90 -72:11:47.1','0:56:25.00 -72:19:05.0','0:55:14.6910 -72:26:06.899']
+source_names = ['SNR0059-7210','SNR0052-7236','CandSNR0056-7209', 'CandSNR0057-7211', 'CandSNR0056-7219', 'boresight']
+numbers_of_beams = [25,100,90,30,60,175]
 
 
 print('There are '+str(beam_total-sum(numbers_of_beams))+' beams left.')
@@ -75,6 +72,5 @@ for tiling_centre, source_name, number_of_beams in zip(tiling_centres, source_na
     os.remove(workdir+'tiling.svg')
     os.remove(workdir+'tilingCoord_pixel')
     os.remove(workdir+'beamWithFit.png')
-
 
 
