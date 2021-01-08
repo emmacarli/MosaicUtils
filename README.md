@@ -1,6 +1,9 @@
 # MosaicUtils
 
 
+Utilities for the software Mosaic https://gitlab.mpifr-bonn.mpg.de/wchen/Beamforming
+Mosaic is used to simulate the MeerKAT telescope beams
+
 ---
 generate_regionfile.py
 
